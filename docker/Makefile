@@ -2,8 +2,8 @@
 BASE_IMAGE         ?= $(shell grep 'ARG BASE_IMAGE=' Dockerfile.multi | grep -o '=.*' | tr -d '="')
 BASE_TAG           ?= $(shell grep 'ARG BASE_TAG=' Dockerfile.multi | grep -o '=.*' | tr -d '="')
 # Name of the new image
-IMAGE_NAME         ?= tensorrt_llm
-IMAGE_TAG          ?= latest
+IMAGE_NAME         ?= tensorrt-llm
+IMAGE_TAG          ?= v0.10.0-release
 
 # Local user information
 USER_ID            ?= $(shell id --user)
@@ -20,7 +20,7 @@ endif
 # Default stage of the docker multi-stage build
 STAGE              ?=
 # Set this to define a custom image name and tag
-IMAGE_WITH_TAG     ?= $(IMAGE_NAME)$(if $(STAGE),/$(STAGE)):$(IMAGE_TAG)
+IMAGE_WITH_TAG     ?= $(IMAGE_NAME):$(IMAGE_TAG)
 PUSH_TO_STAGING    ?= 1
 DOCKER_BUILD_OPTS  ?= --pull
 DOCKER_BUILD_ARGS  ?=
@@ -96,11 +96,11 @@ endef
 	@echo "Pulling docker image: $(IMAGE_WITH_TAG)"
 	docker pull $(IMAGE_WITH_TAG)
 
-DOCKER_RUN_OPTS   ?= --rm -it --ipc=host --ulimit memlock=-1 --ulimit stack=67108864
+DOCKER_RUN_OPTS   ?= -itd --ipc=host --ulimit memlock=-1 --ulimit stack=67108864
 DOCKER_RUN_ARGS   ?=
 GPU_OPTS          ?= --gpus=all
 SOURCE_DIR        ?= $(shell readlink -f ..)
-CODE_DIR          ?= /code/tensorrt_llm
+CODE_DIR          ?= /code/TensorRT-LLM
 CCACHE_DIR        ?= ${CODE_DIR}/cpp/.ccache
 RUN_CMD           ?=
 CONTAINER_NAME    ?= tensorrt_llm
@@ -116,12 +116,11 @@ ifeq ($(LOCAL_USER),1)
 endif
 	docker run $(DOCKER_RUN_OPTS) $(DOCKER_RUN_ARGS) \
     		$(GPU_OPTS) \
-    		--volume $(SOURCE_DIR):$(CODE_DIR) \
     		--env "CCACHE_DIR=${CCACHE_DIR}" \
     		--env "CCACHE_BASEDIR=${CODE_DIR}" \
     		--workdir $(WORK_DIR) \
     		--hostname $(shell hostname)-$* \
-    		--name $(CONTAINER_NAME)-$*-$(USER_NAME) \
+    		--name $(CONTAINER_NAME) \
 			--tmpfs /tmp:exec \
     		$(IMAGE_WITH_TAG)$(IMAGE_TAG_SUFFIX) $(RUN_CMD)
 

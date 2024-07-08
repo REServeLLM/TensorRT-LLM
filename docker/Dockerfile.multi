@@ -5,8 +5,8 @@ ARG DEVEL_IMAGE=devel
 
 FROM ${BASE_IMAGE}:${BASE_TAG} as base
 
-# Copy TensorRT-LLM repository to image, rather than 'docker run --volume'
-COPY .. /code/TensorRT-LLM
+# Copy REServe Project to image, rather than 'docker run --volume'
+COPY ../../.. /code/REServe
 
 # https://www.gnu.org/software/bash/manual/html_node/Bash-Startup-Files.html
 # The default values come from `nvcr.io/nvidia/pytorch`
